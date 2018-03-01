@@ -36,7 +36,6 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
             time += to_start;
             time = max(time, r.s_time);
 
-            assert(time < r.e_time);
             const bool on_time = time == r.s_time;
             const long ride = dist(r.start, r.end);
             time += ride;
@@ -45,7 +44,6 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
                 if (on_time) score += BONUS;
             }
             cur = r.end;
-            assert(time <= STEPS);
         }
     }
     return score;
@@ -158,7 +156,7 @@ int main() {
         // TODO: ex B
 //    }
     sol = exampleB(rides, vehs, steps);
-//    cerr << "Points: " << simulate(sol, bonus, steps) << endl;
+    cerr << "Points: " << simulate(sol, bonus, steps) << endl;
     print_assignments(sol);
 
     return 0;
