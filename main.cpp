@@ -154,8 +154,8 @@ int main() {
 
 
     Sol sol;
-//    if (nrides == 3 && vehs == 2 && rows == 3 && cols == 4) {
-//        sol = exampleA(rides, vehs);
+    if (nrides == 3 && vehs == 2 && rows == 3 && cols == 4) {
+        sol = exampleA(rides, vehs);
 //    } else if (rows == 800 && cols == 1000 && bonus == 25 && steps == 25000) {
         // TODO: ex B
 //    }
