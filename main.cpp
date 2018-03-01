@@ -154,8 +154,9 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) 
         if (v.avail_time >= STEPS) break;
 
         // Find closest ride
+        long min_start_time = LONG_MAX;
         long min_idx = -1;
-        long min_end = LONG_MAX;
+        long min_end = 0;
         for (long i = 0; i < rides.size(); i++) {
             const ride& r = rides[i];
             if (used[i]) continue;
@@ -163,7 +164,8 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) 
             const long closeness = dist(v.loc, r.start);
             const long start_time = max(v.avail_time + closeness, r.s_time);
             const long end_time = start_time + r.len; // max(no-wait, wait)
-            if (end_time < min_end && end_time <= r.e_time) {
+            if (start_time < min_start_time && end_time <= r.e_time) {
+                min_start_time = start_time;
                 min_idx = i;
                 min_end = end_time;
             }
