@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <cassert>
 #include <queue>
+#include <random>
+#include <fstream>
 
 using namespace std;
 
@@ -44,7 +46,7 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
                 score += ride;
                 if (on_time) bonuspts += BONUS;
             } else {
-                assert(false);
+//                assert(false);
             }
             cur = r.end;
         }
@@ -55,13 +57,13 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
     return score + bonuspts;
 }
 
-void print_assignments(const Sol& sol) {
+void print_assignments(const Sol& sol, std::ostream& str) {
     for (const vector<ride>& assigned : sol) {
-        cout << assigned.size();
+        str << assigned.size();
         for (const ride& r : assigned) {
-            cout << " " << r.id;
+            str << " " << r.id;
         }
-        cout << endl;
+        str << endl;
     }
 }
 
@@ -141,7 +143,7 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
 }
 
 // greedy
-Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) {
+Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, const long THRESHOLD) {
     vector<bool> used(rides.size(), false);
     Sol sol(vehs);
     priority_queue<veh> vehicles;
@@ -155,8 +157,6 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) 
 
         // Find closest ride
         long min_start_time = LONG_MAX;
-        long min_idx = -1;
-        long min_end = 0;
         for (long i = 0; i < rides.size(); i++) {
             const ride& r = rides[i];
             if (used[i]) continue;
@@ -166,22 +166,39 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) 
             const long end_time = start_time + r.len; // max(no-wait, wait)
             if (start_time < min_start_time && end_time <= r.e_time) {
                 min_start_time = start_time;
-                min_idx = i;
-                min_end = end_time;
             }
         }
 
-        if (min_idx < 0) {
-            continue; // leave out this car, cannot use it again
+        vector<long> idxset;
+        for (long i = 0; i < rides.size(); i++) {
+            const ride& r = rides[i];
+            if (used[i]) continue;
+            if (r.e_time < v.avail_time) continue;
+            const long closeness = dist(v.loc, r.start);
+            const long start_time = max(v.avail_time + closeness, r.s_time);
+            const long end_time = start_time + r.len; // max(no-wait, wait)
+            if (min_start_time + THRESHOLD > start_time && end_time <= r.e_time) {
+                idxset.push_back(i);
+            }
         }
+
+        // rand num between 0 and idxset.size()
+        if (idxset.empty()) continue; // leave out this car
+//        if (idxset.size() > 2) cerr << "IDXSET size: " << idxset.size() << endl;
+        long idxset_idx = 0 + (rand() % static_cast<int>(idxset.size()));
+        long min_idx = idxset[idxset_idx];
+        assert(min_idx >= 0 && min_idx < rides.size());
+
         // Update sol
         const ride& chosen = rides[min_idx];
         sol[v.id].push_back(chosen);
         used[min_idx] = true;
 
         // Update vehicle
-        v.avail_time = min_end;
-        assert(min_end <= chosen.e_time);
+        long closeness = dist(v.loc, chosen.start);
+        long start_time = max(v.avail_time + closeness, chosen.s_time);
+        v.avail_time = start_time + chosen.len;
+        assert(v.avail_time <= chosen.e_time);
         v.loc = chosen.end;
         vehicles.push(v);
     }
@@ -211,9 +228,30 @@ int main() {
 //    } else if (rows == 800 && cols == 1000 && bonus == 25 && steps == 25000) {
         // TODO: ex B
 //    }
-    sol = earliestStart(rides, vehs, steps);
-    simulate(sol, bonus, steps); // print points
-    print_assignments(sol);
+
+    Sol best_sol;
+    ulong best_pts = 0;
+    long THRESHOLD = 1;
+    for (long i = 0; i < 10; i++) {
+        cerr << "iteration: " << i << ", threshold: " << THRESHOLD << endl;
+        sol = earliestStart(rides, vehs, steps, THRESHOLD);
+        ulong pts = simulate(sol, bonus, steps); // print points
+        if (pts > best_pts) {
+            cerr << "Improved: " << best_pts << "->" << pts << endl;
+            best_pts = pts;
+            best_sol = sol;
+
+            ofstream f;
+            cerr << "Writing to file" << endl;
+            f.open("/tmp/res.txt");
+            print_assignments(best_sol, f);
+            f.close();
+        }
+        THRESHOLD *= 3;
+        THRESHOLD = min(THRESHOLD, 30L);
+    }
+
+    print_assignments(best_sol, cout);
 
     return 0;
 }
