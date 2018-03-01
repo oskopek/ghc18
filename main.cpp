@@ -140,6 +140,55 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
     return sol;
 }
 
+// greedy
+Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS) {
+    vector<bool> used(rides.size(), false);
+    Sol sol(vehs);
+    priority_queue<veh> vehicles;
+    for (long i = 0; i < vehs; i++) {
+        vehicles.push(veh{i, 0, pt{0, 0}});
+    }
+
+    for (long used_rides = 0; used_rides < rides.size(); used_rides++) {
+        veh v = vehicles.top(); vehicles.pop();
+        if (v.avail_time >= STEPS) break;
+
+        // Find closest ride
+        long min_start_time = LONG_MAX;
+        long min_idx = -1;
+        long min_end = 0;
+        for (long i = 0; i < rides.size(); i++) {
+            const ride& r = rides[i];
+            if (used[i]) continue;
+            if (r.e_time < v.avail_time) continue;
+            const long closeness = dist(v.loc, r.start);
+            const long start_time = max(v.avail_time + closeness, r.s_time);
+            const long end_time = start_time + r.len; // max(no-wait, wait)
+            if (start_time < min_start_time && end_time <= r.e_time) {
+                min_start_time = start_time;
+                min_idx = i;
+                min_end = end_time;
+            }
+        }
+
+        if (min_idx < 0) {
+            continue; // leave out this car, cannot use it again
+        }
+        // Update sol
+        const ride& chosen = rides[min_idx];
+        sol[v.id].push_back(chosen);
+        used[min_idx] = true;
+
+        // Update vehicle
+        v.avail_time = min_end;
+        assert(min_end <= chosen.e_time);
+        v.loc = chosen.end;
+        vehicles.push(v);
+    }
+
+    return sol;
+}
+
 int main() {
     long rows, cols, vehs, nrides, bonus, steps;
     cin >> rows >> cols >> vehs >> nrides >> bonus >> steps;
@@ -157,12 +206,12 @@ int main() {
 
 
     Sol sol;
-    if (nrides == 3 && vehs == 2 && rows == 3 && cols == 4) {
-        sol = exampleA(rides, vehs);
+//    if (nrides == 3 && vehs == 2 && rows == 3 && cols == 4) {
+//        sol = exampleA(rides, vehs);
 //    } else if (rows == 800 && cols == 1000 && bonus == 25 && steps == 25000) {
         // TODO: ex B
-    }
-    sol = exampleB(rides, vehs, steps);
+//    }
+    sol = earliestStart(rides, vehs, steps);
     simulate(sol, bonus, steps); // print points
     print_assignments(sol);
 
