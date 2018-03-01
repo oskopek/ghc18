@@ -28,6 +28,7 @@ inline long dist(const pt &a, const pt &b) {
 
 ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
     ulong score = 0;
+    ulong bonuspts = 0;
     for (const vector<ride>& veh : sol) {
         long time = 0;
         pt cur{0, 0};
@@ -41,12 +42,15 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
             time += ride;
             if (time <= r.e_time) {
                 score += ride;
-                if (on_time) score += BONUS;
+                if (on_time) bonuspts += BONUS;
             }
             cur = r.end;
         }
     }
-    return score;
+    cerr << "Score: " << score + bonuspts << endl;
+    cerr << "Rides: " << score << endl;
+    cerr << "Bonus: " << bonuspts << endl;
+    return score + bonuspts;
 }
 
 void print_assignments(const Sol& sol) {
@@ -156,7 +160,7 @@ int main() {
         // TODO: ex B
 //    }
     sol = exampleB(rides, vehs, steps);
-    cerr << "Points: " << simulate(sol, bonus, steps) << endl;
+    simulate(sol, bonus, steps); // print points
     print_assignments(sol);
 
     return 0;
