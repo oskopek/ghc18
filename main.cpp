@@ -142,9 +142,9 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
     return sol;
 }
 
-bool is_left(const ride& r, const long ROW, const long COLS) {
-    return r.start.x < ROW/2 && r.start.y < COLS/2 && r.end.x < ROW/2 && r.end.y < COLS/2;
-}
+//bool is_left(const ride& r, const long ROW, const long COLS) {
+//    return r.start.x < ROW/2 && r.start.y < COLS/2 && r.end.x < ROW/2 && r.end.y < COLS/2;
+//}
 
 // greedy
 Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, const long THRESHOLD, const long rows, const long cols) {
@@ -236,7 +236,7 @@ int main() {
 
     Sol best_sol;
     ulong best_pts = 0;
-    for (long i = 0; i < 50; i++) {
+    for (long i = 0; i < 30; i++) {
 //        long THRESHOLD = 9 + (rand() % static_cast<int>(16 - 9 + 1));
         long THRESHOLD = i;
         cerr << "iteration: " << i << ", threshold: " << THRESHOLD << endl;
