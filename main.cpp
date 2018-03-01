@@ -88,9 +88,9 @@ struct veh {
     }
 };
 
-struct timesort {
+struct lensort {
     bool operator()(const ride& a, const ride& b) const {
-        return a.s_time < b.s_time;
+        return a.len > b.len;
     }
 };
 
@@ -169,7 +169,7 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, 
             }
         }
 
-        vector<long> idxset;
+        vector<ride> idxset;
         for (long i = 0; i < rides.size(); i++) {
             const ride& r = rides[i];
             if (used[i]) continue;
@@ -178,15 +178,16 @@ Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, 
             const long start_time = max(v.avail_time + closeness, r.s_time);
             const long end_time = start_time + r.len; // max(no-wait, wait)
             if (min_start_time + THRESHOLD > start_time && end_time <= r.e_time) {
-                idxset.push_back(i);
+                idxset.push_back(r);
             }
         }
 
         // rand num between 0 and idxset.size()
         if (idxset.empty()) continue; // leave out this car
 //        if (idxset.size() > 2) cerr << "IDXSET size: " << idxset.size() << endl;
-        long idxset_idx = 0 + (rand() % static_cast<int>(idxset.size()));
-        long min_idx = idxset[idxset_idx];
+
+        sort(idxset.begin(), idxset.end(), lensort());
+        long min_idx = idxset[0].id;
         assert(min_idx >= 0 && min_idx < rides.size());
 
         // Update sol
@@ -231,8 +232,9 @@ int main() {
 
     Sol best_sol;
     ulong best_pts = 0;
-    long THRESHOLD = 1;
-    for (long i = 0; i < 10; i++) {
+    for (long i = 0; i < 50; i++) {
+//        long THRESHOLD = 9 + (rand() % static_cast<int>(16 - 9 + 1));
+        long THRESHOLD = i;
         cerr << "iteration: " << i << ", threshold: " << THRESHOLD << endl;
         sol = earliestStart(rides, vehs, steps, THRESHOLD);
         ulong pts = simulate(sol, bonus, steps); // print points
@@ -247,8 +249,6 @@ int main() {
             print_assignments(best_sol, f);
             f.close();
         }
-        THRESHOLD *= 3;
-        THRESHOLD = min(THRESHOLD, 30L);
     }
 
     print_assignments(best_sol, cout);
