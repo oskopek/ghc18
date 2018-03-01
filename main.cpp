@@ -142,8 +142,12 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
     return sol;
 }
 
+bool is_left(const ride& r, const long ROW, const long COLS) {
+    return r.start.x < ROW/2 && r.start.y < COLS/2 && r.end.x < ROW/2 && r.end.y < COLS/2;
+}
+
 // greedy
-Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, const long THRESHOLD) {
+Sol earliestStart(const vector<ride>& rides, const long vehs, const long STEPS, const long THRESHOLD, const long rows, const long cols) {
     vector<bool> used(rides.size(), false);
     Sol sol(vehs);
     priority_queue<veh> vehicles;
@@ -236,7 +240,7 @@ int main() {
 //        long THRESHOLD = 9 + (rand() % static_cast<int>(16 - 9 + 1));
         long THRESHOLD = i;
         cerr << "iteration: " << i << ", threshold: " << THRESHOLD << endl;
-        sol = earliestStart(rides, vehs, steps, THRESHOLD);
+        sol = earliestStart(rides, vehs, steps, THRESHOLD, rows, cols);
         ulong pts = simulate(sol, bonus, steps); // print points
         if (pts > best_pts) {
             cerr << "Improved: " << best_pts << "->" << pts << endl;
