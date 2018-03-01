@@ -39,7 +39,7 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
             const bool on_time = time == r.s_time;
             const long ride = dist(r.start, r.end);
             time += ride;
-            if (time < r.e_time) {
+            if (time <= r.e_time) {
                 score += ride;
                 if (on_time) score += BONUS;
             }
