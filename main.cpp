@@ -43,6 +43,8 @@ ulong simulate(const Sol& sol, const long BONUS, const long STEPS) {
             if (time <= r.e_time) {
                 score += ride;
                 if (on_time) bonuspts += BONUS;
+            } else {
+                assert(false);
             }
             cur = r.end;
         }
@@ -112,8 +114,8 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
             if (used[i]) continue;
             if (r.e_time < v.avail_time) continue;
             const long closeness = dist(v.loc, r.start);
-            const long end_time = v.avail_time + closeness + r.len;
-            if (closeness < min_closeness && end_time < r.e_time) {
+            const long end_time = max(v.avail_time + closeness + r.len, r.s_time + r.len); // max(no-wait, wait)
+            if (closeness < min_closeness && end_time <= r.e_time) {
                 min_closeness = closeness;
                 min_idx = i;
                 min_end = end_time;
@@ -130,6 +132,7 @@ Sol exampleB(const vector<ride>& rides, const long vehs, const long STEPS) {
 
         // Update vehicle
         v.avail_time = min_end;
+        assert(min_end <= chosen.e_time);
         v.loc = chosen.end;
         vehicles.push(v);
     }
@@ -158,7 +161,7 @@ int main() {
         sol = exampleA(rides, vehs);
 //    } else if (rows == 800 && cols == 1000 && bonus == 25 && steps == 25000) {
         // TODO: ex B
-//    }
+    }
     sol = exampleB(rides, vehs, steps);
     simulate(sol, bonus, steps); // print points
     print_assignments(sol);
